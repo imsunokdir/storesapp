@@ -5,6 +5,8 @@ import { AuthContext } from "../../context/AuthContext";
 import LoadBalls from "../../components/LoadBalls";
 import StoreCard from "../../components/user/StoreCard";
 import { useRestoreScroll } from "../../utility/useScrollRestoration";
+import { useDispatch } from "react-redux";
+import { fetchStoresThunk } from "../../redux/thunk/storeThunks";
 
 const sortOptions = [
   { value: "name", label: "Name" },
@@ -22,6 +24,7 @@ const ViewStoresUser = () => {
   const [sortField, setSortField] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
   const [error, setError] = useState("");
+  const dispatch = useDispatch();
 
   const fetchStores = async () => {
     setLoading(true);
@@ -89,6 +92,13 @@ const ViewStoresUser = () => {
   useEffect(() => {
     if (isAuth) {
       const timeoutId = setTimeout(fetchStores, 300);
+      dispatch(
+        fetchStoresThunk({
+          search,
+          sortBy: sortField,
+          order: sortOrder.toUpperCase(),
+        })
+      );
       return () => clearTimeout(timeoutId);
     }
   }, [isAuth, search, sortField, sortOrder]);

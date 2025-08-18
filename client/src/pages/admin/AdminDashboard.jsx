@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { getStats } from "../../services/admin";
+import LoadBalls from "../../components/LoadBalls";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -31,22 +32,27 @@ const AdminDashboard = () => {
     fetchStats();
   }, []);
 
-  if (loading) return <div className="p-8">Loading...</div>;
+  if (loading)
+    return (
+      <div className="p-8">
+        <LoadBalls />
+      </div>
+    );
   if (error) return <div className="p-8 text-red-600">{error}</div>;
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
+    <div className="p-8  min-h-screen">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white shadow rounded p-6 text-center">
-          <h2 className="text-xl font-semibold mb-2">Total Users</h2>
+        <div className="bg-white shadow-md rounded p-6 text-center">
+          <h2 className="text-xl font-semibold mb-2 ">Total Users</h2>
           <p className="text-4xl font-bold">{stats.totalUsers}</p>
         </div>
-        <div className="bg-white shadow rounded p-6 text-center">
+        <div className="bg-white shadow-md rounded p-6 text-center">
           <h2 className="text-xl font-semibold mb-2">Total Stores</h2>
           <p className="text-4xl font-bold">{stats.totalStores}</p>
         </div>
-        <div className="bg-white shadow rounded p-6 text-center">
+        <div className="bg-white shadow-md rounded p-6 text-center">
           <h2 className="text-xl font-semibold mb-2">Total Ratings</h2>
           <p className="text-4xl font-bold">{stats.totalRatings}</p>
         </div>

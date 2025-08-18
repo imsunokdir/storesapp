@@ -1,66 +1,127 @@
 import React, { useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Dropdown, Space, message } from "antd";
+import Avatar from "@mui/material/Avatar";
+import { Login } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+
 import { logout } from "../services/auth";
+import { AuthContext } from "../context/AuthContext";
+import { useDispatch } from "react-redux";
+import { storeActions } from "../redux/store";
 
 const Header = () => {
   const { user, setUser, isAuth } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // AntD message API
+  const [messageApi, contextHolder] = message.useMessage();
+  const key = "logoutMessage";
+  const dispatch = useDispatch();
+
   const handleLogout = async () => {
     try {
-      const res = await logout();
-      if (res.status === 200) {
+      // Show loading message
+      messageApi.open({
+        key,
+        type: "loading",
+        content: "Logging out...",
+      });
+
+      const response = await logout();
+
+      if (response.status === 200) {
         setUser(null);
+
+        // Show success message
+        messageApi.open({
+          key,
+          type: "success",
+          content: "Logged out successfully!",
+          duration: 2,
+        });
+        dispatch(storeActions.resetStores());
+
         navigate("/login");
       }
     } catch (error) {
-      console.log("logout error:", error);
-      alert("error logging out");
+      console.log("Logout error:", error);
+      messageApi.open({
+        key,
+        type: "error",
+        content: "Error logging out. Please try again.",
+      });
     }
   };
 
-  return (
-    <header className="bg-gray-100 shadow-md p-4">
-      <nav className="container mx-auto flex justify-between items-center">
-        <div>
-          <Link to="/" className="text-xl font-semibold text-gray-800">
-            Home
-          </Link>
-        </div>
+  const handlePasswordChangeClick = () => {
+    navigate("/auth/update-password");
+  };
 
-        <div>
-          {!user ? (
-            <>
-              <Link
-                to="/login"
-                className="mr-4 text-blue-600 hover:underline font-medium"
-              >
-                Login
-              </Link>
-              <Link
-                to="/signup"
-                className="text-blue-600 hover:underline font-medium"
-              >
-                Sign Up
-              </Link>
-            </>
-          ) : (
-            <>
-              <span className="mr-6 text-gray-700 font-medium">
+  const items = [
+    isAuth &&
+      user.role !== "admin" && {
+        label: (
+          <a className="no-underline" onClick={handlePasswordChangeClick}>
+            Change Password
+          </a>
+        ),
+        key: "0",
+        icon: <Avatar sx={{ width: 20, height: 20 }} />,
+      },
+    isAuth
+      ? {
+          label: (
+            <a className="no-underline" onClick={handleLogout}>
+              Logout
+            </a>
+          ),
+          key: "1",
+          icon: <Login sx={{ width: 18, height: 18 }} />,
+        }
+      : {
+          label: (
+            <a className="no-underline" onClick={() => navigate("/login")}>
+              Login/Register
+            </a>
+          ),
+          key: "1",
+          icon: <Login sx={{ width: 18, height: 18 }} />,
+        },
+  ];
+
+  return (
+    <>
+      {contextHolder} {/* Important for AntD message */}
+      <header className="bg-gray-100 shadow-md p-4">
+        <nav className="container mx-auto flex justify-between items-center">
+          <div>{/* Logo */}</div>
+
+          <div className="flex items-center space-x-2 ">
+            {isAuth && user?.name && (
+              <span className="font-semibold text-gray-700">
                 Hi, {user.name}
               </span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-              >
-                Logout
-              </button>
-            </>
-          )}
-        </div>
-      </nav>
-    </header>
+            )}
+            <Dropdown
+              menu={{ items }}
+              trigger={["click"]}
+              className="bg-white shadow-md p-1 rounded-[50px] cursor-pointer hover:shadow-lg"
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <Space>
+                  <Avatar className="shadow-md ml-1" />
+                  <div className="hamburger flex flex-col justify-between h-4 w-5 mr-1">
+                    <span className="bg-gray-700 h-0.5 w-full rounded"></span>
+                    <span className="bg-gray-700 h-0.5 w-full rounded"></span>
+                    <span className="bg-gray-700 h-0.5 w-full rounded"></span>
+                  </div>
+                </Space>
+              </a>
+            </Dropdown>
+          </div>
+        </nav>
+      </header>
+    </>
   );
 };
 

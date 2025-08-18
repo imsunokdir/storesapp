@@ -74,7 +74,7 @@ const StoreDashboard = () => {
         <h1 className="text-3xl font-bold">Store Owner Dashboard</h1>
 
         {/* User Menu Button */}
-        <div className="relative" ref={userMenuRef}>
+        {/* <div className="relative" ref={userMenuRef}>
           <button
             onClick={() => setShowUserMenu((prev) => !prev)}
             className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-lg focus:outline-none"
@@ -96,7 +96,7 @@ const StoreDashboard = () => {
               </button>
             </div>
           )}
-        </div>
+        </div> */}
       </div>
 
       {/* Overall Statistics */}

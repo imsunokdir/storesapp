@@ -38,8 +38,10 @@ export const getStores = async ({
   search = "",
   sortBy = "name",
   order = "ASC",
+  page = 1,
+  limit = 2,
 } = {}) => {
-  const params = { sortBy, order };
+  const params = { sortBy, order, page, limit };
 
   if (search && typeof search === "string" && search.trim()) {
     params.search = search.trim();

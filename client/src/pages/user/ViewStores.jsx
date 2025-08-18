@@ -5,41 +5,56 @@ import { AuthContext } from "../../context/AuthContext";
 import LoadBalls from "../../components/LoadBalls";
 import StoreCard from "../../components/user/StoreCard";
 import { useRestoreScroll } from "../../utility/useScrollRestoration";
-
+import { useDispatch, useSelector } from "react-redux";
+import { fetchStoresThunk } from "../../redux/thunk/storeThunks";
+import { storeActions } from "../../redux/store";
+import StoreCardSkeleton from "../../components/skeletons/StoreCardSkeleton";
+import { motion } from "framer-motion";
 const sortOptions = [
   { value: "name", label: "Name" },
   { value: "address", label: "Address" },
-  { value: "averageRating", label: "Rating" },
+  // { value: "averageRating", label: "Rating" },
 ];
 
 const ViewStoresUser = () => {
   useRestoreScroll();
-  const [stores, setStores] = useState([]);
+  // const [stores, setStores] = useState([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [userRatings, setUserRatings] = useState({});
   const { isAuth } = useContext(AuthContext);
   const [sortField, setSortField] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
   const [error, setError] = useState("");
+  const dispatch = useDispatch();
+  const [fetchTrigger, setFetchTrigger] = useState(false);
 
-  const fetchStores = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await getStores({
-        search,
-        sortBy: sortField,
-        order: sortOrder.toUpperCase(),
-      });
-      setStores(res.data);
-    } catch (err) {
-      setError("Failed to load stores");
-      console.error("Error fetching stores", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //redux
+  // const stores = useSelector((state) => state.store.stores);
+  // const page = useSelector((state) => state.store.page);
+  // const hasMore = useSelector((state) => state.store.hasMore);
+  const { stores, page, hasMore, loading } = useSelector(
+    (state) => state.store
+  );
+
+  // const fetchStores = async () => {
+  //   setLoading(true);
+  //   setError("");
+  //   try {
+  //     const res = await getStores({
+  //       search,
+  //       sortBy: sortField,
+  //       order: sortOrder.toUpperCase(),
+  //     });
+  //     console.log("stores data:", res.data.stores);
+  //     setStores(res.data.stores);
+  //   } catch (err) {
+  //     setError("Failed to load stores");
+  //     console.error("Error fetching stores", err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const fetchUserRatings = async () => {
     try {
@@ -49,10 +64,24 @@ const ViewStoresUser = () => {
         ratingsMap[r.store.id] = parseFloat(r.rating); // Ensure it's a number
       });
       setUserRatings(ratingsMap);
-      console.log("User ratings fetched:", ratingsMap); // Debug log
     } catch (err) {
       console.error("Error fetching user ratings", err);
     }
+  };
+
+  const fetchStores = (pageOverride) => {
+    dispatch(
+      fetchStoresThunk({
+        search,
+        sortBy: sortField,
+        order: sortOrder.toUpperCase(),
+        page: pageOverride ?? page,
+      })
+    );
+  };
+
+  const handleLoadMore = () => {
+    fetchStores();
   };
 
   const handleRating = async (storeId, newRating) => {
@@ -87,18 +116,42 @@ const ViewStoresUser = () => {
   };
 
   useEffect(() => {
-    if (isAuth) {
-      const timeoutId = setTimeout(fetchStores, 300);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [isAuth, search, sortField, sortOrder]);
+    if (!isAuth) return;
+
+    dispatch(storeActions.resetStores());
+    fetchStores(1);
+    fetchUserRatings();
+  }, [isAuth]);
 
   useEffect(() => {
-    if (isAuth) fetchUserRatings();
-  }, [isAuth]);
+    if (fetchTrigger) {
+      dispatch(storeActions.resetStores());
+      fetchStores(1);
+    }
+  }, [search, sortField, sortOrder]);
 
   const toggleSortOrder = () => {
     setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  };
+
+  const toggleTrigger = () => {
+    setFetchTrigger(true);
+  };
+
+  useEffect(() => {
+    console.log("fetchTroigger:", fetchTrigger);
+  }, [fetchTrigger]);
+
+  const renderSkeletonCards = () => {
+    return new Array(3).fill(null).map((_, i) => (
+      <motion.div
+        key={i}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <StoreCardSkeleton />
+      </motion.div>
+    ));
   };
 
   return (
@@ -114,7 +167,10 @@ const ViewStoresUser = () => {
                 type="text"
                 placeholder="Search by name or address..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  toggleTrigger();
+                  setSearch(e.target.value);
+                }}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -122,7 +178,10 @@ const ViewStoresUser = () => {
             <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
               <select
                 value={sortField}
-                onChange={(e) => setSortField(e.target.value)}
+                onChange={(e) => {
+                  toggleTrigger();
+                  setSortField(e.target.value);
+                }}
                 className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {sortOptions.map(({ value, label }) => (
@@ -133,7 +192,10 @@ const ViewStoresUser = () => {
               </select>
 
               <button
-                onClick={toggleSortOrder}
+                onClick={() => {
+                  toggleSortOrder();
+                  toggleTrigger();
+                }}
                 className="px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 font-medium"
                 aria-label="Toggle sort order"
                 title={`Sort order: ${
@@ -147,68 +209,86 @@ const ViewStoresUser = () => {
         </div>
 
         {/* Content Area */}
-        {loading ? (
-          <div className="flex justify-center items-center py-16">
-            <LoadBalls />
-          </div>
-        ) : error ? (
-          <div className="text-center py-16">
-            <p className="text-red-600 text-lg">{error}</p>
-          </div>
-        ) : stores.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-gray-400 mb-4">
-              <svg
-                className="mx-auto h-16 w-16"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No stores found
-            </h3>
+        <div>
+          <div className="mb-6">
             <p className="text-gray-600">
-              Try adjusting your search criteria or check back later.
+              Showing <span className="font-semibold">{stores.length}</span>{" "}
+              store{stores.length !== 1 ? "s" : ""}
+              {search && (
+                <span>
+                  {" "}
+                  for "<span className="font-semibold">{search}</span>"
+                </span>
+              )}
             </p>
           </div>
-        ) : (
-          <>
-            {/* Results Count */}
-            <div className="mb-6">
+          {loading ? (
+            // <div className="flex justify-center items-center py-16">
+            //   <LoadBalls />
+            // </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {/* {Array.from({ length: 3 }).map((_, i) => (
+              <StoreCardSkeleton key={i} />
+            ))} */}
+              {renderSkeletonCards()}
+            </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <p className="text-red-600 text-lg">{error}</p>
+            </div>
+          ) : stores.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="text-gray-400 mb-4">
+                <svg
+                  className="mx-auto h-16 w-16"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No stores found
+              </h3>
               <p className="text-gray-600">
-                Showing <span className="font-semibold">{stores.length}</span>{" "}
-                store{stores.length !== 1 ? "s" : ""}
-                {search && (
-                  <span>
-                    {" "}
-                    for "<span className="font-semibold">{search}</span>"
-                  </span>
-                )}
+                Try adjusting your search criteria or check back later.
               </p>
             </div>
+          ) : (
+            <>
+              {/* Results Count */}
 
-            {/* Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {stores.map((store) => (
-                <StoreCard
-                  key={store.id}
-                  store={store}
-                  userRating={userRatings[store.id]}
-                  onRatingChange={handleRating}
-                />
-              ))}
-            </div>
-          </>
-        )}
+              {/* Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {stores.map((store) => (
+                  <StoreCard
+                    key={store.id}
+                    store={store}
+                    userRating={userRatings[store.id]}
+                    onRatingChange={handleRating}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
+      {hasMore && (
+        <div className="flex items-center justify-center mt-2">
+          <button
+            className="bg-blue-400 p-2 rounded text-white mt-2"
+            onClick={handleLoadMore}
+          >
+            Load More
+          </button>
+        </div>
+      )}
     </div>
   );
 };

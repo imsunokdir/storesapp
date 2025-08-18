@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { createNewStore } from "../../services/admin";
+import GoBack from "../../components/GoBack";
 
 const AddNewStore = () => {
   const [form, setForm] = useState({
@@ -41,63 +42,74 @@ const AddNewStore = () => {
       setError("Failed to add store");
     }
   };
+
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-6 text-center">Add New Store</h2>
+    <div className="flex flex-col lg:flex-row min-h-screen">
+      {/* GoBack component - left side on large screens, top on small screens */}
+      <div className="lg:w-auto lg:flex-shrink-0 p-2">
+        <GoBack />
+      </div>
 
-      {error && <p className="mb-4 text-red-600">{error}</p>}
-      {success && <p className="mb-4 text-green-600">{success}</p>}
+      {/* Main content - right side on large screens, bottom on small screens */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="max-w-md w-full p-6 bg-white rounded shadow">
+          <h2 className="text-2xl font-bold mb-6 text-center">Add New Store</h2>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="name"
-          placeholder="Store Name (20-60 characters)"
-          value={form.name}
-          onChange={handleChange}
-          required
-          minLength={20}
-          maxLength={60}
-          className="mb-4 w-full p-3 border border-gray-300 rounded"
-        />
+          {error && <p className="mb-4 text-red-600">{error}</p>}
+          {success && <p className="mb-4 text-green-600">{success}</p>}
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Store Email"
-          value={form.email}
-          onChange={handleChange}
-          required
-          className="mb-4 w-full p-3 border border-gray-300 rounded"
-        />
+          <form onSubmit={handleSubmit}>
+            <input
+              type="text"
+              name="name"
+              placeholder="Store Name (20-60 characters)"
+              value={form.name}
+              onChange={handleChange}
+              required
+              minLength={20}
+              maxLength={60}
+              className="mb-4 w-full p-3 border border-gray-300 rounded"
+            />
 
-        <textarea
-          name="address"
-          placeholder="Store Address (max 400 characters)"
-          value={form.address}
-          onChange={handleChange}
-          required
-          maxLength={400}
-          className="mb-4 w-full p-3 border border-gray-300 rounded"
-        />
+            <input
+              type="email"
+              name="email"
+              placeholder="Store Email"
+              value={form.email}
+              onChange={handleChange}
+              required
+              className="mb-4 w-full p-3 border border-gray-300 rounded"
+            />
 
-        <input
-          type="text"
-          name="owner_id"
-          placeholder="Owner User ID"
-          value={form.owner_id}
-          onChange={handleChange}
-          required
-          className="mb-6 w-full p-3 border border-gray-300 rounded"
-        />
+            <textarea
+              name="address"
+              placeholder="Store Address (max 400 characters)"
+              value={form.address}
+              onChange={handleChange}
+              required
+              maxLength={400}
+              className="mb-4 w-full p-3 border border-gray-300 rounded"
+            />
 
-        <button
-          type="submit"
-          className="w-full bg-indigo-600 text-white py-3 rounded hover:bg-indigo-700 transition"
-        >
-          Add Store
-        </button>
-      </form>
+            <input
+              type="text"
+              name="owner_id"
+              placeholder="Owner User ID"
+              value={form.owner_id}
+              onChange={handleChange}
+              required
+              className="mb-6 w-full p-3 border border-gray-300 rounded"
+            />
+
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 text-white py-3 rounded hover:bg-indigo-700 transition"
+            >
+              Add Store
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };

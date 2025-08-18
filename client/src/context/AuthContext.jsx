@@ -12,10 +12,9 @@ export const AuthProvider = ({ children }) => {
 
   const checkSession = async () => {
     try {
-      const res = await isLoggedIn(); // should return user object if logged in
+      const res = await isLoggedIn();
       if (res.status === 200) {
-        setUser(res.data); // you missed this line in your code!
-        console.log("res user:", res);
+        setUser(res.data);
       } else {
         setUser(null);
       }

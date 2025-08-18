@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { signUp } from "../services/auth";
 import { useNavigate } from "react-router-dom";
+import { Flag } from "@mui/icons-material";
+import LoadingButton from "../components/loading/LoadingButton";
 
 const SignupPage = () => {
   const [form, setForm] = useState({
@@ -12,6 +14,7 @@ const SignupPage = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const [isSigningUp, setIsSigningUp] = useState(false);
 
   // Password validation checks
   const isLengthValid = form.password.length >= 8 && form.password.length <= 16;
@@ -35,6 +38,7 @@ const SignupPage = () => {
       );
       return;
     }
+    setIsSigningUp(true);
 
     try {
       const res = await signUp(form);
@@ -46,15 +50,16 @@ const SignupPage = () => {
       }
     } catch (error) {
       setError("There was an error signing up.");
+    } finally {
+      setIsSigningUp(false);
     }
   };
 
-  // Utility function to get color class for validation feedback
   const getColorClass = (condition) =>
     condition ? "text-green-600" : "text-red-600";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="flex justify-center px-4 mt-20">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded shadow-md w-full max-w-md"
@@ -120,12 +125,29 @@ const SignupPage = () => {
             {hasSpecialChar ? "✔" : "✘"} At least one special character
           </li>
         </ul>
-        <button
+        {/* <button
           type="submit"
           className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition"
         >
           Sign Up
-        </button>
+        </button> */}
+        <LoadingButton
+          type="submit"
+          text="Sign Up"
+          loadingText="Signing Up..."
+          loading={isSigningUp}
+        />
+
+        {/* Login link */}
+        <p className="mt-4 text-center text-gray-600">
+          Already have an account?{" "}
+          <span
+            className="text-blue-600 hover:underline cursor-pointer"
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </span>
+        </p>
       </form>
     </div>
   );

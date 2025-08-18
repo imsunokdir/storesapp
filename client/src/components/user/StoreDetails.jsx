@@ -183,42 +183,8 @@ const StoreDetail = () => {
                   </h3>
                   <p className="text-gray-800 text-lg">{store.address}</p>
                 </div>
-
-                {/* <div>
-                  <h3 className="text-sm font-medium text-gray-600 mb-2">
-                    📧 Email
-                  </h3>
-                  <p className="text-gray-800">{store.email}</p>
-                </div> */}
-
-                {/* {store.createdAt && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-600 mb-2">
-                      📅 Established
-                    </h3>
-                    <p className="text-gray-800">
-                      {new Date(store.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-                )} */}
               </div>
             </div>
-
-            {/* Additional Information Section */}
-            {/* <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-                About This Store
-              </h2>
-              <p className="text-gray-600">
-                Welcome to {store.name}! We're located at {store.address} and
-                we're committed to providing excellent service to our customers.
-                Feel free to rate your experience with us!
-              </p>
-            </div> */}
           </div>
 
           {/* Rating Sidebar */}
